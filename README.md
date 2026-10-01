@@ -112,3 +112,46 @@ src/
 
 data/
 └── Raw and processed local data; not version-controlled
+```
+
+## Main workflow
+```
+Index
+  ↓
+Historical constituents
+  ↓
+Index weights
+  ↓
+Constituent implied volatility
+  ↓
+Stock-index correlation
+  ↓
+Marshall MIV
+  ↓
+Observed index implied volatility
+  ↓
+Dispersion spread
+```
+
+Example
+Single-date calculation:
+```
+uv run python run_dispersion.py \
+    --index DJIA \
+    --date 2024-01-03 \
+    --iv-method combined_50delta
+```
+
+Historical calculation:
+```
+uv run python run_dispersion.py \
+    --index DJIA \
+    --start 2024-01-03 \
+    --end 2024-01-31 \
+    --iv-method combined_50delta
+```
+The original IV averaging methodology can still be used with:
+```--iv-method average_50delta```
+
+
+
