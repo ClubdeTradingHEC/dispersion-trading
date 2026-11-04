@@ -1,3 +1,18 @@
+# Current integration review
+
+Final deep-check exception: Rafael specifically approved updating only the Nasdaq
+manual discovery diagnostic to inspect actual columns before exploratory queries.
+No production financial/membership calculation changes accompany this correction.
+All seven manual WRDS diagnostics were then executed without query errors.
+
+The active branch is `codex/integrate-team-updates`, based on team main `5ceaa01`.
+INTEGRATION.md records current decisions and checks. Existing Kevin files had
+reverted to the initial pipeline; earlier approved working integration differences
+were restored after Rafael's explicit authorization. New team quote/cost/export
+modules are unchanged. No push/history rewrite occurs. The material below records
+the prior source-only delivery and remains historical context, not this branch's
+current verification receipt.
+
 # Kevin's review guide
 
 ## Branch and comparison points

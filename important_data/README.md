@@ -1,10 +1,14 @@
-# Local-only data
+# Local-only inputs
 
-Only this README belongs in the source distribution. Every other file here is
-licensed input or generated local output. Do not commit or upload those files.
+Only this README belongs in Git/source exports. Keep licensed observations,
+generated models and caches local. Do not upload or commit them.
 
-The commands in docs/PROJECT_GUIDE.md create historical membership, raw source
-bundles, the prepared DJIA dataset and fitted models. Runtime tables, charts,
-receipts and reports are written under data/. No .venv or generated observations
-are required in a GitHub download; install dependencies and acquire your own
-licensed inputs first. Publication/vintage timing remains uncertified.
+Supply `sources/membership.csv` separately for DJIA: dated `index,permno,start,end`
+intervals. The private working folder preserves the supplied CSV; Git exports do
+not contain it. Automatic DJX-to-Compustat name discovery currently fails its
+confidence check, so the CSV is a required separately supplied input for DJIA.
+
+PROJECT_GUIDE documents WRDS acquisition and offline research. TEAM_WORKFLOWS
+documents returns, event-calendar, VIX and execution-cost inputs. Environments
+are installed locally; no generated observations are needed merely to run tests.
+Historical vendor/publication timing remains uncertified.

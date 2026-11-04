@@ -1,8 +1,8 @@
 import argparse
 
-from ...src.data.wrds_connection import get_wrds_connection
-from ...src.data.security_lookup import get_secid_from_ticker
-from ...src.data.optionmetrics_iv import (
+from src.data.wrds_connection import get_wrds_connection
+from src.data.security_lookup import get_secid_from_ticker
+from src.data.optionmetrics_iv import (
     get_50delta_surface,
     get_average_50delta_iv,
     get_combined_50delta_iv,
@@ -42,6 +42,7 @@ def main():
         secid = get_secid_from_ticker(
             db,
             args.ticker,
+            date=args.date, days=args.days,
         )
 
         surface = get_50delta_surface(

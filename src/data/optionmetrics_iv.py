@@ -1,15 +1,21 @@
 import pandas as pd
 
-from .option_pricing import invert_combined_iv
+import numpy as np
+from .rates import zero_rate
 
 
-def _normalize_rate(rate):
-    rate = float(rate)
+def _rate_unit(db=None, unit=None):
+    import os
+    from src.research.errors import DataError
+    selected = unit or getattr(db, "rate_unit", None) or os.environ.get("OPTIONMETRICS_RATE_UNIT") or "kevin"
+    if selected not in ("percent", "decimal", "kevin"):
+        raise DataError("RATE_UNIT_UNDECLARED", "Set OPTIONMETRICS_RATE_UNIT from vendor documentation.")
+    return selected
 
-    if abs(rate) > 1:
-        return rate / 100.0
 
-    return rate
+def _normalize_rate(rate, unit=None):
+    from .rates import rate_convert
+    return rate_convert(float(rate), _rate_unit(unit=unit))
 
 
 def get_50delta_surface(
@@ -28,7 +34,7 @@ def get_50delta_surface(
             delta,
             impl_volatility,
             impl_strike,
-            impl_premium
+            impl_premium, dispersion
         FROM optionm.vsurfd{year}
         WHERE secid = {int(secid)}
           AND date = '{date}'
@@ -56,11 +62,17 @@ def get_50delta_surface(
         subset=["impl_volatility", "impl_strike", "impl_premium"]
     )
 
-    if call.empty or put.empty:
+    if len(call) != 1 or len(put) != 1:
         raise ValueError(
-            "Incomplete +/-50 delta surface."
+            "Missing or duplicate +/-50 delta surface legs."
         )
 
+    if len(df) != 2:
+        raise ValueError("Invalid or duplicate +/-50 delta surface legs.")
+    for leg in (call, put):
+        values = leg[["impl_volatility", "impl_strike", "impl_premium"]].to_numpy(float)
+        if not np.isfinite(values).all() or (values[:, :2] <= 0).any() or (values[:, 2] < 0).any():
+            raise ValueError("Invalid option leg.")
     call = call.iloc[0]
     put = put.iloc[0]
 
@@ -126,6 +138,8 @@ def get_forward(
             "No valid forward found."
         )
 
+    if not np.isfinite(pd.to_numeric(df.forward_price, errors="coerce")).all() or (values <= 0).any():
+        raise ValueError("Invalid forward price.")
     forward_min = float(values.min())
     forward_max = float(values.max())
     tolerance = max(1e-8, abs(forward_min) * 1e-8)
@@ -140,82 +154,11 @@ def get_forward(
     return float(values.mean())
 
 
-def get_zero_rate(
-    db,
-    date,
-    days=30,
-):
-    date = pd.Timestamp(date).date()
-
-    curve = db.raw_sql(
-        f"""
-        SELECT days, rate
-        FROM optionm.zerocd
-        WHERE date = '{date}'
-        ORDER BY days
-        """
-    )
-
-    if curve.empty:
-        raise ValueError(
-            f"No zero curve for {date}."
-        )
-
-    curve["days"] = pd.to_numeric(curve["days"], errors="coerce")
-    curve["rate"] = pd.to_numeric(curve["rate"], errors="coerce")
-    curve = curve.dropna(subset=["days", "rate"]).copy()
-    curve["rate"] = curve["rate"].map(_normalize_rate)
-
-    if curve.empty:
-        raise ValueError(f"No valid zero-curve observations for {date}.")
-
-    exact = curve[
-        curve["days"] == days
-    ]
-
-    if not exact.empty:
-        return float(
-            exact.iloc[0]["rate"]
-        )
-
-    lower_rows = curve[curve["days"] < days]
-    upper_rows = curve[curve["days"] > days]
-
-    if lower_rows.empty or upper_rows.empty:
-        raise ValueError(
-            f"Cannot interpolate a {days}D zero rate on {date}; "
-            f"the curve does not bracket that maturity."
-        )
-
-    lower = lower_rows.iloc[-1]
-    upper = upper_rows.iloc[0]
-
-    d1 = float(
-        lower["days"]
-    )
-
-    d2 = float(
-        upper["days"]
-    )
-
-    r1 = float(
-        lower["rate"]
-    )
-
-    r2 = float(
-        upper["rate"]
-    )
-
-    w = (
-        days - d1
-    ) / (
-        d2 - d1
-    )
-
-    return (
-        r1
-        + w * (r2 - r1)
-    )
+def get_zero_rate(db, date, days=30, rate_unit=None):
+    date = pd.Timestamp(date).normalize()
+    curve = db.raw_sql(f"SELECT days, rate FROM optionm.zerocd WHERE date = '{date.date()}' ORDER BY days").copy()
+    curve["date"] = date
+    return zero_rate(curve, date, days, _rate_unit(db, rate_unit))[1]
 
 
 def get_average_50delta_iv(
@@ -227,51 +170,20 @@ def get_average_50delta_iv(
     ) / 2
 
 
-def get_combined_50delta_iv(
-    db,
-    secid,
-    date,
-    days=30,
-):
-    surface = get_50delta_surface(
-        db,
-        secid,
-        date,
-        days,
-    )
-
-    forward = get_forward(
-        db,
-        secid,
-        date,
-        days,
-    )
-
-    rate = get_zero_rate(
-        db,
-        date,
-        days,
-    )
-
-    iv = invert_combined_iv(
-        call_premium=surface[
-            "call_premium"
-        ],
-        put_premium=surface[
-            "put_premium"
-        ],
-        call_strike=surface[
-            "call_strike"
-        ],
-        put_strike=surface[
-            "put_strike"
-        ],
-        forward=forward,
-        rate=rate,
-        days=days,
-    )
-
-    return iv
+def get_combined_50delta_iv(db, secid, date, days=30, return_diagnostics=False):
+    """Keep Kevin's float return by default; expose pricing diagnostics on request."""
+    from src.research.config import Config
+    from src.research.pricing import package
+    date = pd.Timestamp(date).normalize()
+    year = date.year
+    surface = db.raw_sql(f"SELECT secid, date, days, cp_flag, delta, impl_volatility, impl_strike, impl_premium, dispersion FROM optionm.vsurfd{year} WHERE secid={int(secid)} AND date='{date.date()}' AND days={int(days)} AND ((cp_flag='C' AND delta=50) OR (cp_flag='P' AND delta=-50))", date_cols=["date"])
+    forwards = db.raw_sql(f"SELECT secid, date, days, forward_price FROM optionm.stdopd{year} WHERE secid={int(secid)} AND date='{date.date()}' AND days={int(days)}", date_cols=["date"])
+    curve = db.raw_sql(f"SELECT date, days, rate FROM optionm.zerocd WHERE date='{date.date()}' ORDER BY days", date_cols=["date"])
+    for frame in (surface, forwards, curve):
+        frame["date"] = pd.to_datetime(frame["date"]).dt.normalize()
+    result = package(surface, forwards, curve, int(secid), date, days, Config(rate_unit=_rate_unit(db)))
+    result["zero_rate"] = result["rate"]
+    return (result["iv"], result) if return_diagnostics else result["iv"]
 
 
 def get_iv(

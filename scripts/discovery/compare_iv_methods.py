@@ -1,8 +1,8 @@
 import argparse
 import pandas as pd
 
-from ...src.data.wrds_connection import get_wrds_connection
-from .iv_lookup import (
+from src.data.wrds_connection import get_wrds_connection
+from src.data.optionmetrics_iv import (
     get_50delta_surface,
     get_average_50delta_iv,
     get_combined_50delta_iv,
@@ -86,6 +86,7 @@ def main():
                         secid=args.secid,
                         date=date_str,
                         days=args.days,
+                        return_diagnostics=True,
                     )
                 )
 

@@ -64,7 +64,7 @@ def get_signal_dates(
 # ============================================================
 
 
-def compute_miv_history(
+def _compute_miv_history_diagnostic(
     db,
     index,
     start,
@@ -245,6 +245,56 @@ def compute_miv_history(
     )
 
 
+def compute_miv_history(db, index, start, end, benchmark=None, days=30, months=36,
+                        membership=None, weighting="auto", tickers=None,
+                        iv_method="combined_50delta", verbose=True,
+                        engine="diagnostic", research_config=None):
+    """Use Kevin's original calculation by default; batching remains opt-in."""
+    if engine == "diagnostic":
+        return _compute_miv_history_diagnostic(db, index, start, end, benchmark, days,
+            months, membership, weighting, tickers, iv_method, verbose)
+    if engine != "batched":
+        raise ValueError("history engine must be batched or diagnostic")
+    if tickers is not None or iv_method != "combined_50delta" or months != 36:
+        raise ValueError("Non-baseline exploratory history requires engine='diagnostic'")
+    from dataclasses import replace
+    from src.research.config import Config, IndexSpec
+    from src.research.wrds_client import extract
+    from src.research.batching import compute_to_disk
+    settings = resolve_index_settings(index, benchmark, weighting)
+    cfg = Config.read(research_config or "configs/research.json")
+    secid = get_index_secid(db, settings["benchmark"])
+    spec = IndexSpec(settings["index"], settings["benchmark"], settings["weighting"], secid)
+    import tempfile
+    with tempfile.TemporaryDirectory(prefix="dispersion-membership-") as temporary:
+        if membership is not None and settings["index"] != "SPX":
+            raise ValueError("Set the historical membership_csv in research_config for this index")
+        configured = next((item for item in cfg.indices if item["name"] == spec.name), None)
+        if configured:
+            spec.membership_csv = configured.get("membership_csv")
+        cfg = replace(cfg, entry_start=str(pd.Timestamp(start).date()), entry_end=str(pd.Timestamp(end).date()),
+                      horizons=[days], indices=[spec.__dict__])
+        raw = extract(db, cfg, "data/wrds", progress=print if verbose else lambda _: None, materialize=False)
+        target = Path("data/reports/kevin_history")
+        compute_to_disk(raw, cfg, target, batch_sessions=63)
+        frame = pd.read_parquet(target / "measurements.parquet")
+        frame = frame.loc[frame.basket == "full"].copy()
+        if frame.empty:
+            return pd.DataFrame()
+        frame = frame.rename(columns={"index_iv": "index_atm_iv", "n_selected": "constituents_used"})
+        frame["benchmark"] = spec.benchmark
+        frame["weighting"] = spec.weighting
+        frame["iv_method"] = iv_method
+        frame["iv_days"], frame["correlation_months"] = days, months
+        frame["weight_coverage"] = frame["original_cap_coverage"]
+        frame["constituents_expected"] = frame["n_original"]
+        frame["miv"] = frame.get("miv", float("nan"))
+        frame["spread"] = frame.get("spread", float("nan"))
+        frame["spread_vol_bps"] = frame["spread"] * 10000
+        # Keep exclusion statuses and empty values rather than hide failed dates.
+        return frame.sort_values("date").reset_index(drop=True)
+
+
 # ============================================================
 # PUBLIC FUNCTION
 # ============================================================
@@ -263,6 +313,8 @@ def run_miv_history(
     tickers=None,
     iv_method="combined_50delta",
     verbose=True,
+    engine="diagnostic",
+    research_config=None,
 ):
     """
     Public historical MIV function.
@@ -285,7 +337,7 @@ def run_miv_history(
         tickers=tickers,
     )
 
-    db = get_wrds_connection()
+    db = get_wrds_connection(cache=False)
 
     try:
         history = compute_miv_history(
@@ -301,6 +353,7 @@ def run_miv_history(
             tickers=tickers,
             iv_method=iv_method,
             verbose=verbose,
+            engine=engine, research_config=research_config,
         )
 
     finally:

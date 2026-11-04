@@ -320,12 +320,17 @@ def get_compustat_index_constituents(
         ]
     )
 
+    if (resolved["permno"] <= 0).any() or (resolved["permno"] % 1 != 0).any():
+        raise ValueError("AMBIGUOUS_HISTORICAL_MAPPING: invalid permanent identifier")
+
     resolved["permno"] = (
         resolved[
             "permno"
         ]
         .astype(int)
     )
+    if resolved["permno"].duplicated().any():
+        raise ValueError("AMBIGUOUS_HISTORICAL_MAPPING: duplicated or invalid permanent identifiers")
 
     # ========================================================
     # 7. Attach final contemporaneous CRSP tickers
@@ -385,6 +390,16 @@ def get_compustat_index_constituents(
     # ========================================================
     # 8. QA
     # ========================================================
+
+    if result.permno.duplicated().any():
+        raise ValueError("AMBIGUOUS_HISTORICAL_MAPPING: duplicated final security")
+    n_missing = len(membership) - len(result)
+    result.attrs["membership_coverage"] = {
+        "expected": len(membership), "found": len(result), "missing": n_missing,
+    }
+    if n_missing:
+        import warnings
+        warnings.warn(f"Historical membership: returned {len(result)} of {len(membership)} members; {n_missing} not found.", RuntimeWarning, stacklevel=2)
 
     if verbose:
 
