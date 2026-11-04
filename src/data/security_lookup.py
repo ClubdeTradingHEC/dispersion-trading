@@ -288,9 +288,8 @@ def get_optionmetrics_secid(
     """
     Map a CRSP PERMNO to its historical OptionMetrics SECID.
 
-    Lower WRDS link score is preferred. If several SECIDs remain at the
-    best score, use availability of the requested +/-50 delta surface as
-    the tie-breaker.
+    Lower WRDS link score is preferred; tied distinct SECIDs are rejected.
+    Option availability cannot establish security identity.
     """
     date = pd.Timestamp(date).date()
     ticker = normalize_ticker(ticker) or str(ticker)
@@ -324,66 +323,24 @@ def get_optionmetrics_secid(
     if links.empty:
         raise ValueError(f"No valid PERMNO-SECID links found for {ticker}.")
 
-    # Missing scores are worse than observed scores, but still usable if
-    # every candidate is missing a score.
-    links["score_sort"] = links["score"].fillna(float("inf"))
-    best_score = links["score_sort"].min()
-    best = links[links["score_sort"] == best_score].copy()
+    from src.research.inputs import map_secid, normalize_table
+    for column in ("sdate", "edate"):
+        links[column] = pd.to_datetime(links[column])
+    normalize_table("links", links)
+    return map_secid(links, int(permno), pd.Timestamp(date))
 
-    if len(best) == 1:
-        return int(best.iloc[0]["secid"])
 
-    year = pd.Timestamp(date).year
-    valid_secids = []
-
-    for secid in best["secid"].astype(int).tolist():
-        surface = db.raw_sql(
-            f"""
-            SELECT cp_flag, delta, impl_volatility
-            FROM optionm.vsurfd{year}
-            WHERE secid = {secid}
-              AND date = '{date}'
-              AND days = {int(days)}
-              AND (
-                    (cp_flag = 'C' AND delta = 50)
-                 OR (cp_flag = 'P' AND delta = -50)
-              )
-            """
-        )
-
-        if surface.empty:
-            continue
-
-        surface["delta"] = pd.to_numeric(surface["delta"], errors="coerce")
-        surface["impl_volatility"] = pd.to_numeric(
-            surface["impl_volatility"], errors="coerce"
-        )
-
-        has_call = (
-            (surface["cp_flag"] == "C")
-            & (surface["delta"] == 50)
-            & surface["impl_volatility"].notna()
-        ).any()
-        has_put = (
-            (surface["cp_flag"] == "P")
-            & (surface["delta"] == -50)
-            & surface["impl_volatility"].notna()
-        ).any()
-
-        if has_call and has_put:
-            valid_secids.append(secid)
-
-    if len(valid_secids) == 1:
-        return valid_secids[0]
-    if not valid_secids:
-        raise ValueError(
-            f"No valid OptionMetrics {days}D +/-50 delta surface found "
-            f"for {ticker} among tied SECIDs."
-        )
-
-    raise ValueError(
-        f"Multiple valid SECIDs remain for {ticker}: {valid_secids}"
-    )
+def get_secid_from_ticker(db, ticker, date=None, days=30):
+    """Historical ticker resolution; current metadata is insufficient for stock identity."""
+    if date is None:
+        raise ValueError("date is required for historical ticker resolution")
+    try:
+        return get_index_secid(db, ticker)
+    except ValueError:
+        matches = resolve_tickers_to_permnos(db, [ticker], date)
+        if len(matches) != 1:
+            raise ValueError("Ticker does not identify exactly one dated PERMNO")
+        return get_optionmetrics_secid(db, int(matches.iloc[0].permno), ticker, date, days)
 
 
 def get_index_secid(db, ticker):

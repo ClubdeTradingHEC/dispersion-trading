@@ -37,7 +37,7 @@ Signals are `IC - predicted future RC`, saved as decimals and correlation percen
 | 7 | 4.900 | [2.183, 7.617] |
 | 5 | 5.038 | [2.168, 7.908] |
 
-Nested windows are dependent. Positive average gaps are not proof of mispricing or tradable profit. The public Faria-style approximation remains about 4.63 points; it uses shifted precomputed series rather than Faria’s original option data. Its calculation does not validate the raw-return calculator; explicit real-pair checks do.
+Nested windows are dependent. Positive average gaps are not proof of mispricing or tradable profit. The public Faria-style approximation remains about 4.63 points; it uses shifted precomputed series rather than Fariaâ€™s original option data. Its calculation does not validate the raw-return calculator; explicit real-pair checks do.
 
 ## Actual-gap exploration and limitations
 
@@ -47,7 +47,7 @@ Overlapping outcomes create daily error dependence. HAC (15/30/60), block bootst
 
 The previous five-variable model used broader history eligibility. Its exact original sample is checked in the retained verification receipt; this report uses a common sample for fair comparisons. Prior important aggregates are summarized in `docs/RESULTS.md`.
 
-Reusable dataset, models and final verification are retained in `important_data/`. Detailed phase outputs under `data/research/` are disposable and can be regenerated.
+Reusable dataset, models and verification can be generated locally under `important_data/`; they are not bundled in this source checkout. Detailed phase outputs under `data/research/` are disposable and can be regenerated.
 
 Measurement revision: available_inputs_v1. Valid duration-flagged returns are retained; genuinely missing observations use explicitly reported available-pair estimates. The Faria public-series comparison is unchanged. Original coefficient references remain historical rather than rewritten to match the changed measurement target.
 

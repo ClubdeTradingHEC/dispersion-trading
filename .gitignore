@@ -1,16 +1,56 @@
-# Données (potentiellement sous licence WRDS — ne jamais commit)
-data/*
-!data/.gitkeep
-
-# Python
-__pycache__/
-*.pyc
-.ipynb_checkpoints/
-venv/
+# Local environments, caches and credentials
 .venv/
-
-# Environnement
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+build/
+dist/
 .env
+.env.*
+!.env.example
+.pgpass
+# Licensed extracts and generated research outputs stay local
+/data/*
+!/data/.gitkeep
+/important_data/*
+!/important_data/README.md
+*.log
 
-# OS
+# Local research documents
+/sources/
+
+# Local credentials, tooling and editor state
+.wrds*
+*.pem
+*.key
+.coverage
+htmlcov/
+.ruff_cache/
+.mypy_cache/
+.idea/
+.vscode/
+Thumbs.db
 .DS_Store
+
+# Additional local environments and authentication files
+venv/
+env/
+.venv-*/
+.pgpass.conf
+pgpass.conf
+.netrc
+.pypirc
+
+# Original teammate script filenames (compatibility outputs and local input CSVs)
+/macro_events.csv
+/macro_events.xlsx
+/spx_returns_weights_*.csv
+/basket_correlation*.csv
+/basket_correlation*.xlsx
+/basket_correlation*.png
+/event_study_*.csv
+/event_study_*.xlsx
+/vix_overlay*.csv
+/vix_corr_*.png
+/vix_rv_*.png

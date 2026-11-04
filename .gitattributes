@@ -7,7 +7,12 @@
 /AGENTS.md text eol=lf
 
 # Preserve the approved Kevin working baseline byte for byte when staging/exporting.
-/src/data/** -text
-/src/run_dispersion.py -text
-/scripts/discovery/** -text
-/tests/test_*.py -text
+/src/data/** -text whitespace=cr-at-eol
+/src/run_dispersion.py -text whitespace=cr-at-eol
+/scripts/discovery/** -text whitespace=cr-at-eol
+/tests/test_*.py -text whitespace=cr-at-eol
+
+# English team integration and package metadata use consistent source line endings.
+/src/events/*.py text eol=lf
+/pyproject.toml text eol=lf
+/uv.lock text eol=lf

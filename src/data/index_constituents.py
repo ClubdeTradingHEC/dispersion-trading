@@ -35,7 +35,7 @@ def get_sp500_constituents(
             permno
         FROM crsp.dsp500list_v2
         WHERE mbrstartdt <= '{date}'
-          AND mbrenddt >= '{date}'
+          AND (mbrenddt >= '{date}' OR mbrenddt IS NULL)
         """
     )
 
@@ -68,12 +68,10 @@ def get_sp500_constituents(
         date=date,
     )
 
-    if result.empty:
-        raise ValueError(
-            f"S&P 500 membership exists on {date}, "
-            f"but CRSP ticker mapping returned no rows."
-        )
-
+    if result.permno.duplicated().any():
+        raise ValueError("Ambiguous dated ticker mapping")
+    result = members[["permno"]].drop_duplicates().merge(result, on="permno", how="left")
+    result["ticker"] = result["ticker"].fillna(result["permno"].map(lambda x: f"PERMNO_{x}"))
     return result
 
 

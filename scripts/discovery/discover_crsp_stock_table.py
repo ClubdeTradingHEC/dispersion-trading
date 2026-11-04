@@ -1,4 +1,4 @@
-from wrds_connection import get_wrds_connection
+from src.data.wrds_connection import get_wrds_connection
 
 
 CANDIDATES = [

@@ -1,6 +1,6 @@
 import pandas as pd
 
-from wrds_connection import get_wrds_connection
+from src.data.wrds_connection import get_wrds_connection
 
 
 TEST_DATE = "2024-01-03"

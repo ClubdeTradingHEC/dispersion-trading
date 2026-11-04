@@ -26,27 +26,28 @@ conventions; it does not change Kevin's rate rule or option pricing.
 
 ## DJIA membership and acquisition (explicit live work)
 
-The historical membership CSV is generated, not distributed. The membership
-command invokes Kevin's unchanged dated resolver for each exchange entry session,
-keeps available mapped names, and writes missing counts beside the CSV. It does
-not invent mappings or substitute present-day constituents. The default budget
-allows at most five dates and fails before login for a larger request.
+Use the supplied validated historical CSV at
+`important_data/sources/membership.csv` (columns `index,permno,start,end`). It is
+local-only and not included in a GitHub source export. It covers the configured
+entry period with 28–30 mapped members; early partial baskets stay qualified.
+Share this required input separately with authorized WRDS users.
 
-The full date range has thousands of sessions and can require many queries.
-`--max-dates 4000` explicitly authorizes that range when you execute it. Do not
-run a full acquisition merely to check an installation. Exact query caches make
-repeated requests restartable; source availability may differ from the earlier run.
+**Do not run `dispersion membership` as an installation/reproduction prerequisite.**
+The retained optional command invokes Kevin's automatic name matcher, which still
+fails its confidence check for DJX. Table access succeeds; this is not a password
+or missing-data permission error. Do not weaken the matcher or fabricate members.
+
+With the CSV supplied, start acquisition here (explicit live work):
 
 ```powershell
-uv run --locked --no-sync dispersion membership --config configs/measurement.json --output important_data/sources/membership.csv --max-dates 4000
 uv run --locked --no-sync dispersion extract --config configs/measurement.json --output important_data/sources --bundle-name raw --provisional
 ```
 
-The second command writes `important_data/sources/raw/manifest.json` and its
-licensed shards. It downloads bounded identifier/date batches, including warmup
-returns and future label returns. The configured observation ceiling is not a
-claim that observations exist through that date. A separately sourced, validated
-membership CSV with `index,permno,start,end` can be supplied at the same path.
+This writes important_data/sources/raw/manifest.json and licensed shards. Full
+historical acquisition is substantial; do not run it to check an installation.
+The configured observation ceiling is not proof that data exist through that date.
+If investigating automatic membership separately, use a one-date configuration
+and the default five-date budget, never an unreviewed full-history request.
 
 ## DJIA measurement and preparation (offline)
 
@@ -126,3 +127,8 @@ with extraction separately explicit. Kevin's `tests/test_*.py` are manual live
 checks and are excluded from ordinary pytest collection. GitHub CI runs the offline
 suite. The source export requires a reviewed commit; use `--working-tree` only
 for a labelled pre-commit candidate. Nothing auto-pushes, merges or rewrites history.
+
+## Other team workflows
+
+See [TEAM_WORKFLOWS](TEAM_WORKFLOWS.md) for returns/cost exports and the consolidated
+macro/basket/event/VIX commands. These do not change the four-equation research study.

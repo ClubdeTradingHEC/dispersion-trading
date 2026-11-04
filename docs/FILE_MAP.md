@@ -1,6 +1,8 @@
 # Delivered file inventory
 
-Every delivered source file is listed below. Generated material is excluded.
+Every delivered source file is listed below. Generated material and local membership are excluded.
+Current integration review: docs/INTEGRATION.md; original team paths retained.
+Kevin protection applies to existing implementations; restored earlier approved changes are documented.
 Kevin-derived files preserve the approved delivery starting bytes, including
 earlier approved integration changes. This is an inventory, not another engine.
 
@@ -108,3 +110,48 @@ earlier approved integration changes. This is an inventory, not another engine.
 | `tests/unit/test_sample_timing.py` | Actual forecast block leakage/A-B tests, crash boundaries and checkpoint reuse. |
 | `tests/unit/test_workflow.py` | Approved specification, stale input/model rejection and failed-fit recovery. |
 | `uv.lock` | Reproducible runtime dependency contract. |
+
+## Integrated team additions
+
+| File | Purpose / consumer |
+|---|---|
+| `configs/events.json` | Team curated macro/FOMC/shock configuration; consumed by events.macro. |
+| `docs/INTEGRATION.md` | All agreed plan points, overlap decisions, authorization and delivery limits. |
+| `docs/TEAM_WORKFLOWS.md` | English operation, schemas and scientific distinctions for team tools. |
+| `scripts/diagnostics/check_option_quotes.py` | Retained manual live OptionMetrics schema/quote diagnostic. |
+| `scripts/save file/basket correll 2 2021-2025.py` | Original team script-path compatibility launcher; delegates to shared src.events implementation. |
+| `scripts/save file/basket correll 2.py` | Original team script-path compatibility launcher; delegates to shared src.events implementation. |
+| `scripts/save file/event_study_2021_2025 - Copy.py` | Original team script-path compatibility launcher; delegates to shared src.events implementation. |
+| `scripts/save file/macro_events (1).py` | Original team script-path compatibility launcher; delegates to shared src.events implementation. |
+| `scripts/save file/vix_overlay_2021_2025.py` | Original team script-path compatibility launcher; delegates to shared src.events implementation. |
+| `src/backtest/__init__.py` | Import-safe namespace for existing cost arithmetic. |
+| `src/backtest/transaction_costs.py` | Preserved option/stock/futures execution-cost arithmetic; called by tests and future trade consumers. |
+| `src/data/add_stress_scenario.py` | Preserved fixed-path 4.09-vol-point stress scenario addition. |
+| `src/data/check_stock_bidask.py` | Retained manual live stock bid/ask diagnostic. |
+| `src/data/compare_straddle_costs.py` | Preserved ticker/method quote-cost comparison CLI. |
+| `src/data/export_delta_hedge_costs.py` | Preserved fixed-path CRSP stock hedge-cost exporter for existing cost tables. |
+| `src/data/export_returns_weights.py` | Preserved dated daily CRSP member/return/weight export; event/VIX input producer. |
+| `src/data/export_top30_straddle_costs.py` | Preserved dated top-N/batched-quote cost pipeline; cost table producer. |
+| `src/data/inspect_quote_outliers.py` | Retained manual one-date quote/settlement inspection. |
+| `src/data/option_quotes.py` | Preserved listed same-strike pair retrieval/selection/cost calculation; cost export consumers. |
+| `src/data/validate_straddle_costs.py` | Preserved cost arithmetic/quote QA consumer of quote exports. |
+| `src/events/__init__.py` | Import-safe event package. |
+| `src/events/analysis.py` | Shared trailing basket, event changes and future volatility; consumed by events CLI. |
+| `src/events/cli.py` | dispersion-events explicit acquisition/offline commands and chart/table outputs. |
+| `src/events/legacy.py` | Original script-path launch defaults sharing events CLI. |
+| `src/events/macro.py` | Explicit FRED calendar acquisition and exchange-session event alignment. |
+| `tests/unit/test_team_integration.py` | Independent pair/cost arithmetic, timing, missing data and workflow interaction cases. |
+
+## Final teammate-readiness additions
+
+| File | Purpose / consumer |
+|---|---|
+| `src/backtest/cli.py` | Strict cost-QA exit codes/counts, reusing the preserved team reporting calculation. |
+| `src/events/output.py` | Complete-generation publication via the existing rollback-tested publisher; protects inputs/unrelated files. |
+| `tests/unit/test_teammate_readiness.py` | Reproduced missing-session, mixed-index, publication, legacy artifact, QA, schema, credential-redaction and non-editable-install regressions. |
+
+The only new protected manual-script edit is the specifically authorized
+schema-aware Nasdaq source diagnostic. The ten newly supplied team src/data
+modules and transaction-cost arithmetic keep their supplied bytes. The only
+research-layer edit in this deep check is checkout discovery for offline
+verification after a non-editable install; financial/model definitions are unchanged.

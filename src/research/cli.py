@@ -76,7 +76,13 @@ def parser():
 
 def offline_tests(output):
     """Run offline tests in a subprocess and persist actual pass/fail counts."""
-    root = Path(__file__).resolve().parents[2]
+    # A wheel/non-editable install lives in site-packages; its tests live in the checkout.
+    root = Path.cwd()
+    required = ['pyproject.toml', 'tests/unit', 'src/research/cli.py']
+    if not all((root / name).exists() for name in required):
+        root = Path(__file__).resolve().parents[2]
+    if not all((root / name).exists() for name in required):
+        raise DataError('SOURCE_CHECKOUT_REQUIRED', 'Run verification from the extracted repository root.')
     out = Path(output).resolve()
     out.mkdir(parents=True, exist_ok=True)
     proc = subprocess.run(

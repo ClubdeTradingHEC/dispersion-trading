@@ -1,7 +1,7 @@
 import argparse
 
-from data.miv import run_miv
-from data.miv_history import run_miv_history
+from src.data.miv import run_miv
+from src.data.miv_history import run_miv_history
 
 
 IV_METHODS = [
@@ -81,6 +81,8 @@ def get_args():
         help="Output CSV path for historical runs",
     )
 
+    parser.add_argument("--history-engine", choices=["batched", "diagnostic"], default="diagnostic")
+    parser.add_argument("--research-config", default="configs/research.json")
     return parser.parse_args()
 
 
@@ -179,6 +181,7 @@ def main():
             output=args.output,
             iv_method=args.iv_method,
             verbose=True,
+            engine=args.history_engine, research_config=args.research_config,
         )
         return
 

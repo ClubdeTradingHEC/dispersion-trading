@@ -1,6 +1,6 @@
 import pandas as pd
 
-from ...src.data.wrds_connection import get_wrds_connection
+from src.data.wrds_connection import get_wrds_connection
 
 
 SEARCH_LIBRARIES = [
