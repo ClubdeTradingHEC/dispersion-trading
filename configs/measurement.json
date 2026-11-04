@@ -1,0 +1,55 @@
+{
+  "query_batch_ids": 200,
+  "query_batch_days": 93,
+  "entry_start": "2010-08-30",
+  "entry_end": "2025-08-29",
+  "observation_end": "2026-12-31",
+  "horizons": [
+    30
+  ],
+  "indices": [
+    {
+      "name": "DJIA",
+      "benchmark": "DJX",
+      "weighting": "price",
+      "secid": 102456,
+      "enabled": true,
+      "membership_csv": "important_data/sources/membership.csv",
+      "return_column": "dlyret",
+      "return_convention": "Kevin_baseline_total_stock_vendor_index"
+    }
+  ],
+  "rate_unit": "kevin",
+  "rate_compounding": "continuous",
+  "rate_convention_confirmed": false,
+  "rate_confirmation_source": "",
+  "day_count": 365,
+  "history_months": 36,
+  "repricing_abs_tol": 0.01,
+  "repricing_rel_tol": 0.01,
+  "max_dispersion": null,
+  "quarantine_repricing": false,
+  "min_sessions": 10,
+  "bootstrap_repetitions": 1999,
+  "seed": 20261008,
+  "calibration_end": "2015-12-31",
+  "basket_fractions": [],
+  "basket_counts": [],
+  "basket_weight_thresholds": [],
+  "basket_min_dates": 100,
+  "basket_min_coverage": 0.8,
+  "basket_tolerances": {
+    "ic": 0.02,
+    "rc_future": 0.02,
+    "gap": 0.02,
+    "miv": 0.005,
+    "spread": 0.005,
+    "mic": 0.02,
+    "mic_rc_future": 0.02
+  },
+  "basket_tolerances_confirmed": false,
+  "basket_reference": "full",
+  "information_lag_sessions": 1,
+  "mic_equivalence_margin": 0.02,
+  "exclusions": {}
+}

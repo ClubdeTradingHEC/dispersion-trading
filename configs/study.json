@@ -1,0 +1,69 @@
+{
+  "output_root": "data/research",
+  "training_start": "2011-01-01",
+  "training_end": "2022-12-31",
+  "evaluation_start": "2023-01-01",
+  "evaluation_end": "2025-08-29",
+  "development_years": [
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022
+  ],
+  "slow_history_sessions": 252,
+  "slow_half_life_sessions": 60,
+  "downside_sessions": 120,
+  "minimum_negative_sessions_per_stock": 10,
+  "minimum_training_rows": 252,
+  "common_features": [
+    "ic",
+    "rc_past",
+    "vol20",
+    "return20",
+    "index_iv",
+    "slow_rc",
+    "downside_rc"
+  ],
+  "specifications": {
+    "ic_only": [
+      "ic"
+    ],
+    "baseline": [
+      "ic",
+      "rc_past"
+    ],
+    "expanded": [
+      "ic",
+      "rc_past",
+      "vol20",
+      "return20",
+      "index_iv"
+    ],
+    "requested": [
+      "ic",
+      "rc_past",
+      "slow_rc",
+      "downside_rc"
+    ]
+  },
+  "bootstrap_repetitions": 999,
+  "bootstrap_block_sessions": 60,
+  "seed": 20261103,
+  "raw_root": "important_data/sources/raw",
+  "measurements_root": "important_data/sources",
+  "crash_dates_file": "configs/djia_crash_days.json",
+  "nonoverlap_fit": {
+    "specifications": [
+      "ic_only",
+      "baseline",
+      "expanded",
+      "requested"
+    ],
+    "minimum_training_rows": 36
+  },
+  "dataset_root": "important_data"
+}
