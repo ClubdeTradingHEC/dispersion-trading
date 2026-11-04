@@ -10,6 +10,7 @@ dist/
 .env.*
 !.env.example
 .pgpass
+configs/*
 # Licensed extracts and generated research outputs stay local
 /data/*
 !/data/.gitkeep
