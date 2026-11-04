@@ -1,0 +1,13 @@
+# Normalize our maintained files without changing Kevin-derived working files.
+/src/research/*.py text eol=lf
+/tests/unit/*.py text eol=lf
+/docs/*.md text eol=lf
+/configs/*.json text eol=lf
+/README.md text eol=lf
+/AGENTS.md text eol=lf
+
+# Preserve the approved Kevin working baseline byte for byte when staging/exporting.
+/src/data/** -text
+/src/run_dispersion.py -text
+/scripts/discovery/** -text
+/tests/test_*.py -text
