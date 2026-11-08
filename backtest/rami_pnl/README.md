@@ -9,13 +9,10 @@ pris seul, à notionnel fixe : pas de capitalisation, pas de compensation entre 
 | Fichier | Contenu | Lignes | Période |
 |---|---|---|---|
 | `djia_1m_trades.csv` | DJIA, paris d'un mois : un trade par ligne | 334 | entrées du 1997-10-20 au 2025-07-21, dernière sortie 2025-08-15 |
-| `djia_1m_marks_daily.csv` | chaque trade ouvert, marqué chaque jour de bourse | 6999 | idem |
 | `djia_1m_strategy_daily.csv` | la stratégie, tous trades ouverts confondus, par jour | 6999 | idem |
 | `sp500_3m_trades.csv` | S&P 500, paris de trois mois (le réglage réaliste) : un trade par ligne | 353 | entrées du 1996-01-22 au 2025-05-19, dernière sortie 2025-08-15 |
-| `sp500_3m_marks_daily.csv` | chaque trade ouvert, marqué chaque jour de bourse | 22205 | idem |
 | `sp500_3m_strategy_daily.csv` | la stratégie, tous trades ouverts confondus, par jour | 7441 | idem |
 | `sp500_1m_trades.csv` | S&P 500, paris d'un mois (même horizon que le DJIA) : un trade par ligne | 355 | entrées du 1996-01-22 au 2025-07-21, dernière sortie 2025-08-15 |
-| `sp500_1m_marks_daily.csv` | chaque trade ouvert, marqué chaque jour de bourse | 7441 | idem |
 | `sp500_1m_strategy_daily.csv` | la stratégie, tous trades ouverts confondus, par jour | 7441 | idem |
 
 ## Colonnes
@@ -29,15 +26,6 @@ pris seul, à notionnel fixe : pas de capitalisation, pas de compensation entre 
 | `book` | mois de départ (0, 1 ou 2 pour les paris de 3 mois, qui se chevauchent ; toujours 0 à un mois) |
 | `pnl_gross` | P&L brut, avant coûts |
 | `pnl_net` | P&L net, après les coûts mesurés |
-
-`*_marks_daily.csv` : une ligne par trade ouvert et par jour.
-
-| Colonne | Sens |
-|---|---|
-| `date` | le jour de bourse |
-| `entry`, `exit`, `book` | le trade (même identifiant que dans `*_trades.csv`) |
-| `day`, `days_in_bet` | jours de bourse écoulés depuis l'entrée, et durée totale du trade |
-| `mark_gross`, `mark_net` | valeur estimée du trade ce jour-là, avant et après son coût (payé le jour d'entrée) |
 
 `*_strategy_daily.csv` : une ligne par jour de bourse.
 
