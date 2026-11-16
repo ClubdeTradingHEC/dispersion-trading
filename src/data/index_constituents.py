@@ -112,6 +112,7 @@ def get_wrds_index_constituents(
             db=db,
             index=index,
             date=date,
+            verbose=True,
         )
 
     except ValueError:
