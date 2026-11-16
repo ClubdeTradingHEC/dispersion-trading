@@ -128,6 +128,73 @@ does not certify execution prices, publication-time liquidity or strategy profit
 Future cost models must not double-charge commissions: exported base/stress costs
 exclude commissions; helper option_execution_cost adds its own commission.
 
+## Transaction-cost correction (step 0)
+
+`src/data/add_stress_scenario.py` formerly generated a fixed 4.09-vol-point
+charge multiplied by vega and contract size. `src/backtest/transaction_costs.py`
+exposed it through the `fixed_stress` option and stock-cost scenarios. These
+execution scenarios and that dollar conversion have been removed. No CLI or
+config previously exposed the scenario; it was a Python argument. This checkout
+contains cost helpers and Rami P&L CSVs, but no trade simulator or entry loop.
+The only existing reader of `simulator_costs_final.csv` is the separate live
+stock-hedge exporter; that script and `stock_hedge_costs.csv` remain unchanged.
+
+Generate and check the corrected options export offline:
+
+```sh
+uv run --locked --no-sync python -m src.data.add_stress_scenario
+uv run --locked --no-sync dispersion-costs load-options
+```
+
+The compatibility export command now reads
+`data/transaction_costs/top30_2019/simulator_costs_final.csv` and writes
+`data/transaction_costs/top30_2019/simulator_option_costs_2019.csv`, dropping only
+columns beginning with `fixed_stress`. It preserves retained cell text and row
+order and never overwrites its source. Both paths can be overridden with `--input`
+and `--output`. The new `load_option_costs()` helper and `load-options` command
+default to the corrected file and reject legacy fixed-stress columns. An external
+simulator must adopt this loader/path; no external simulator has been changed.
+
+Base is the observed bid-ask half-spread per execution; observed `stress` is the
+full spread. Exported `base_cost_usd` and `stress_cost_usd` already include the
+contract multiplier. Pass them to `option_execution_cost`, with `commission_usd`
+as the keyword `commission_per_straddle`, once per execution. If only the dollar
+half-spread is supplied, the helper doubles it for stress. Do not multiply these
+dollar costs by contract size again or pass commission-inclusive columns. The
+removed fixed-cost positional argument is no longer accepted; commissions are
+keyword-only. ES costs retain an **uncalibrated half-tick assumption**, 0.5 × $12.50
+= **$6.25 per contract per execution**, plus any explicitly configured commission.
+
+The optional Marshall replication hurdle is separate from execution costs:
+`passes_marshall_hurdle(ioiv, miv, enabled=False, iv_unit='decimal')` evaluates
+`abs(IOIV - MIV) >= 0.0409` once per index-level signal when enabled. Repository
+`index_atm_iv`/`index_iv` and `miv` are decimals (the display code multiplies by
+100); explicitly declared `percentage_points` inputs use 4.09. Equality passes.
+This is only hurdle eligibility, not a complete entry strategy or a claim of
+paper replication. It does not alter the IC/predicted-RC research signals.
+
+```sh
+uv run --locked --no-sync dispersion-costs signal --ioiv .20 --miv .18
+uv run --locked --no-sync dispersion-costs signal --ioiv .20 --miv .18 --marshall-hurdle
+```
+
+The first command leaves the hurdle disabled; the second fails hurdle eligibility.
+Neither submits a trade or charges a cost. No repeated leg/hedge application is
+present; a future simulator must call the predicate once at signal evaluation.
+
+Step 0 local checks (2026-11-16): focused pytest for
+`test_transaction_cost_correction.py` and `test_team_integration.py`: **PASS**, 20
+tests. Corrected export and default `load-options`: **PASS**, 7,804 rows, all 23
+retained columns identical as CSV cell text and in original order; three legacy
+columns removed. Original export and stock-hedge SHA256 checks: **PASS**, unchanged.
+Comparing old/new base and stress helpers on every row at quantities -2, 0 and 1:
+**PASS**, 46,824 exact comparisons. Enabled CLI hurdle on .20 minus .18 correctly
+returns false. `uv run --locked --no-sync dispersion verify`: **FAIL**, 184 passed,
+12 failed because of missing configuration/input files; `configs/` is absent.
+Local receipts: `data/validation/local/offline/{pytest.log,pytest.xml,test_summary.json}`.
+Actual simulator execution: **NOT RUN**, no simulator source in this checkout.
+No WRDS queries, file delivery, commits or pushes were performed.
+
 ## Original script names
 
 All five paths under `scripts/save file/` remain executable, import-safe thin

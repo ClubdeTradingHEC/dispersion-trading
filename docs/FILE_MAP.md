@@ -125,8 +125,8 @@ earlier approved integration changes. This is an inventory, not another engine.
 | `scripts/save file/macro_events (1).py` | Original team script-path compatibility launcher; delegates to shared src.events implementation. |
 | `scripts/save file/vix_overlay_2021_2025.py` | Original team script-path compatibility launcher; delegates to shared src.events implementation. |
 | `src/backtest/__init__.py` | Import-safe namespace for existing cost arithmetic. |
-| `src/backtest/transaction_costs.py` | Preserved option/stock/futures execution-cost arithmetic; called by tests and future trade consumers. |
-| `src/data/add_stress_scenario.py` | Preserved fixed-path 4.09-vol-point stress scenario addition. |
+| `src/backtest/transaction_costs.py` | Observed option/stock/futures execution-cost arithmetic and corrected 2019 loader; consumed by costs CLI and future trade consumers. |
+| `src/data/add_stress_scenario.py` | Offline lossless corrected options export; compatibility module command drops only legacy fixed_stress columns. |
 | `src/data/check_stock_bidask.py` | Retained manual live stock bid/ask diagnostic. |
 | `src/data/compare_straddle_costs.py` | Preserved ticker/method quote-cost comparison CLI. |
 | `src/data/export_delta_hedge_costs.py` | Preserved fixed-path CRSP stock hedge-cost exporter for existing cost tables. |
@@ -146,7 +146,7 @@ earlier approved integration changes. This is an inventory, not another engine.
 
 | File | Purpose / consumer |
 |---|---|
-| `src/backtest/cli.py` | Strict cost-QA exit codes/counts, reusing the preserved team reporting calculation. |
+| `src/backtest/cli.py` | Offline cost QA, corrected options loading and optional index-signal hurdle commands. |
 | `src/events/output.py` | Complete-generation publication via the existing rollback-tested publisher; protects inputs/unrelated files. |
 | `tests/unit/test_teammate_readiness.py` | Reproduced missing-session, mixed-index, publication, legacy artifact, QA, schema, credential-redaction and non-editable-install regressions. |
 
@@ -155,3 +155,14 @@ schema-aware Nasdaq source diagnostic. The ten newly supplied team src/data
 modules and transaction-cost arithmetic keep their supplied bytes. The only
 research-layer edit in this deep check is checkout discovery for offline
 verification after a non-editable install; financial/model definitions are unchanged.
+
+## Transaction-cost step 0 additions
+
+| File | Purpose / consumer |
+|---|---|
+| `src/backtest/signals.py` | Disabled-by-default, unit-explicit index IOIV minus MIV hurdle; costs signal CLI and future signal consumers. |
+| `tests/unit/test_transaction_cost_correction.py` | Observed-cost arithmetic, ES assumption, hurdle boundaries, lossless export and loader/CLI contracts. |
+
+The explicit step 0 authorization supersedes the supplied-byte preservation claim
+above for `src/data/add_stress_scenario.py` and transaction-cost arithmetic only.
+The corrected 2019 CSV is local generated data, excluded from source delivery.

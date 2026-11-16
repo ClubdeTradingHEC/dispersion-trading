@@ -1,10 +1,28 @@
 
 from dataclasses import dataclass
+from pathlib import Path
+
+import pandas as pd
+
+
+OPTION_COSTS_2019 = Path('data/transaction_costs/top30_2019/simulator_option_costs_2019.csv')
+
+
+def load_option_costs(path=OPTION_COSTS_2019):
+    """Load corrected per-straddle dollar costs; multipliers are already included."""
+    frame = pd.read_csv(path)
+    if any(c.startswith('fixed_stress') for c in frame.columns):
+        raise ValueError('Legacy fixed_stress columns: regenerate the corrected export')
+    required = ['base_cost_usd', 'stress_cost_usd', 'commission_usd']
+    values = frame[required].apply(pd.to_numeric, errors='raise')
+    if values.isna().any().any() or not ((values >= 0) & (values < float('inf'))).all().all():
+        raise ValueError('Execution costs must be finite and nonnegative')
+    return frame
 
 
 @dataclass
 class FuturesCostConfig:
-    # Example assumption, not a calibrated historical value.
+    # ES: uncalibrated half-tick assumption = $6.25/contract/execution.
     half_spread_ticks: float = 0.5
     tick_value_usd: float = 12.50
     commission_per_contract: float = 0.0
@@ -13,8 +31,8 @@ class FuturesCostConfig:
 def option_execution_cost(
     quantity: float,
     base_cost_per_straddle: float,
-    stress_cost_per_straddle: float,
-    fixed_stress_cost_per_straddle: float,
+    stress_cost_per_straddle: float | None = None,
+    *,
     commission_per_straddle: float = 1.30,
     scenario: str = "base",
 ) -> float:
@@ -23,11 +41,14 @@ def option_execution_cost(
 
     All input costs are in USD per one-way execution,
     excluding commissions.
+    Base is an observed half-spread, already in dollars per straddle.
+    If only that input is supplied, observed stress doubles it. Do not apply
+    the contract multiplier again or pass commission-inclusive export columns.
     """
     costs = {
         "base": base_cost_per_straddle,
-        "stress": stress_cost_per_straddle,
-        "fixed_stress": fixed_stress_cost_per_straddle,
+        "stress": (2 * base_cost_per_straddle if stress_cost_per_straddle is None
+                   else stress_cost_per_straddle),
     }
 
     if scenario not in costs:
@@ -52,7 +73,6 @@ def stock_hedge_cost(
     multiplier = {
         "base": 1.0,
         "stress": 2.0,
-        "fixed_stress": 1.0,
     }
 
     if scenario not in multiplier:

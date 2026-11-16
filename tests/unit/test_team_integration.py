@@ -77,13 +77,13 @@ def test_event_change_alignment_and_empty_groups(returns):
 
 
 def test_execution_cost_units_and_sides():
-    assert option_execution_cost(-2,10,20,30)==pytest.approx(22.6)
-    assert option_execution_cost(2,10,20,30,scenario='stress')==pytest.approx(42.6)
+    assert option_execution_cost(-2,10,20)==pytest.approx(22.6)
+    assert option_execution_cost(2,10,20,scenario='stress')==pytest.approx(42.6)
     assert stock_hedge_cost(-100,.02,'stress')==pytest.approx(4)
     assert futures_hedge_cost(-2,FuturesCostConfig())==pytest.approx(12.5)
     assert total_execution_cost(1,2,3)==6
     with pytest.raises(ValueError):
-        option_execution_cost(1,1,2,3,scenario='unknown')
+        option_execution_cost(1,1,2,scenario='unknown')
 
 
 def test_quote_pair_compatibility_and_dollar_arithmetic():

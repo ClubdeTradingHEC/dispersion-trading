@@ -102,3 +102,14 @@ summation remain unchanged. Repricing quarantine is off by default. Missing
 historical identifiers return the available list and a missing-count report.
 Strict documented rate modes remain gated by provider evidence; cleanup does
 not change rates, introduce an American solver or certify vendor conventions.
+
+## Optional Marshall replication hurdle and execution costs
+
+The optional index-level hurdle is `abs(IOIV - MIV) >= 0.0409` for the stored
+decimal IVs (4.09 for explicitly declared percentage-point inputs), applied once
+per signal and disabled by default. It is not a per-leg or per-execution charge
+and does not affect IC/RC model fitting. Observed option execution costs retain
+half-spread base and full-spread stress, contract multipliers and commissions.
+ES hedge costs use an uncalibrated half-tick assumption of $6.25 per contract per
+execution, plus configured commissions. See TEAM_WORKFLOWS for commands and the
+absence of a trade simulator in this checkout.
