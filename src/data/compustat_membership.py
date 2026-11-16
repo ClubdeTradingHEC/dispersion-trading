@@ -93,18 +93,6 @@ def get_compustat_index_constituents(
         """
     )
 
-    print("\n=== RAW COMPUSTAT MEMBERSHIP ===")
-    print(f"Index: {index}")
-    print(f"Date: {date}")
-    print(f"GVKEYX: {gvkeyx}")
-    print(f"Raw membership rows: {len(membership)}")
-
-    print(
-        membership[
-            ["gvkey", "iid", "cusip", "conm_cst"]
-        ].to_string(index=False)
-    )
-
     if membership.empty:
         raise ValueError(
             f"No Compustat membership found for "
