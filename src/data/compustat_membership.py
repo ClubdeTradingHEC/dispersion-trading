@@ -93,6 +93,18 @@ def get_compustat_index_constituents(
         """
     )
 
+    print("\n=== RAW COMPUSTAT MEMBERSHIP ===")
+    print(f"Index: {index}")
+    print(f"Date: {date}")
+    print(f"GVKEYX: {gvkeyx}")
+    print(f"Raw membership rows: {len(membership)}")
+
+    print(
+        membership[
+            ["gvkey", "iid", "cusip", "conm_cst"]
+        ].to_string(index=False)
+    )
+
     if membership.empty:
         raise ValueError(
             f"No Compustat membership found for "
@@ -288,6 +300,68 @@ def get_compustat_index_constituents(
                     ]
                 )
             )
+
+    # ========================================================
+    # 5B. Historical ticker fallback for known corporate actions
+    # ========================================================
+
+    historical_aliases = {
+        "010983": {
+            "ticker": "UTX",
+            "end": pd.Timestamp("2020-04-02").date(),
+        },
+        "142953": {
+            "ticker": "KFT",
+            "end": pd.Timestamp("2012-10-01").date(),
+        },
+    }
+
+    for gvkey, alias in historical_aliases.items():
+
+        mask = (
+            (membership["gvkey"] == gvkey)
+            & membership["permno"].isna()
+        )
+
+        if not mask.any():
+            continue
+
+        if date > alias["end"]:
+            continue
+
+        historical_ticker = alias["ticker"]
+
+        matches = db.raw_sql(
+            f"""
+            SELECT DISTINCT
+                permno,
+                ticker
+            FROM crsp.dsf_v2
+            WHERE dlycaldt = '{date}'
+            AND ticker = '{historical_ticker}'
+            """
+        )
+
+        unique_permnos = matches["permno"].dropna().unique()
+
+        if len(unique_permnos) != 1:
+            print(
+                f"Historical ticker mapping unresolved: "
+                f"{gvkey} -> {historical_ticker}, "
+                f"PERMNO candidates={unique_permnos}"
+            )
+            continue
+
+        permno = int(unique_permnos[0])
+
+        membership.loc[mask, "permno"] = permno
+        membership.loc[mask, "ticker"] = historical_ticker
+
+        print(
+            f"Historical ticker mapping: "
+            f"GVKEY {gvkey} -> "
+            f"{historical_ticker} -> PERMNO {permno}"
+        )
 
     # ========================================================
     # 6. Keep resolved PERMNOs
