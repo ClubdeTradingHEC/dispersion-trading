@@ -4,6 +4,37 @@ Une ligne par trade, et le P&L quotidien de la stratégie, pour le Dow Jones (DJ
 P&L en points de variance pour une unité de notionnel actions (× 10,3 $ pour des dollars). Chaque trade est
 pris seul, à notionnel fixe : pas de capitalisation, pas de compensation entre trades qui se chevauchent.
 
+## Version corrigée (20 novembre 2026)
+
+Ces fichiers remplacent ceux du 8 novembre. Ils sont refaits par le même code, après les corrections de l'audit
+interne. Deux corrections changent des chiffres ici ; les autres ne touchent pas ces fichiers.
+
+- **Titres qui cessent de coter en cours de trade.** La variance réalisée d'un titre est maintenant annualisée sur tous
+  les jours de bourse du trade, comme dans un vrai swap de variance. Avant, elle l'était sur les seuls jours où le titre
+  cotait encore, ce qui gonflait sa variance quand il disparaissait en cours de route (fusion, faillite).
+- **L'ancien Viacom compté comme une seule société.** Ses deux catégories d'actions étaient traitées comme deux
+  sociétés, ce qui changeait le top 25 du S&P 500 sur quelques entrées de 2001 à 2003.
+
+| Fichier | Trades qui changent | Plus gros écart (P&L net) | Écart médian | Total du P&L net, avant → après |
+|---|---|---|---|---|
+| `djia_1m_trades.csv` | 3 sur 334 | −2 178,0 (entrée 2009-05-18 : GM, faillite du 1er juin 2009) | 35,3 | −29 574,1 → −31 793,1 |
+| `sp500_1m_trades.csv` | 9 sur 355 | +130,6 (entrée 2001-04-23 : Viacom) | 12,5 | −6 703,0 → −6 792,3 |
+| `sp500_3m_trades.csv` | 10 sur 353 | −184,8 (entrée 2001-04-23 : Viacom) | 14,1 | 37 922,8 → 37 462,9 |
+
+- **DJIA** : les trois trades sont ceux où un titre du Dow a cessé de coter : J.P. Morgan (fusion avec Chase,
+  entrée 2000-12-18), General Motors (entrée 2009-05-18 ; ce trade passe de 2 693,3 à 515,3 et n'est plus le plus gros
+  gain du fichier) et DuPont (fusion DowDuPont, entrée 2017-08-21).
+- **S&P 500** : Viacom change 8 trades à chaque horizon (entrées de 2001 à 2003) ; les titres qui cessent de coter en
+  changent 1 à un mois (Warner-Lambert, rachetée par Pfizer, entrée 2000-06-19) et 2 à trois mois (Warner-Lambert, et
+  Citicorp, fusion Citigroup, entrée 1998-07-20).
+- **Ce qui ne change pas** : les dates, le nombre de trades et de lignes, la colonne `open_bets`, les 331, 346 et 343
+  autres trades (au caractère près), et toute l'année 2008 et mars 2020 dans les fichiers quotidiens. Les fichiers
+  quotidiens ne bougent que pendant les trades corrigés (P&L du jour) et après eux (P&L cumulé, décalé de leur écart) :
+  de 2001 à 2017 pour le DJIA, de 2000 à 2003 pour le S&P 500 à un mois, de 1998 à 2003 à trois mois.
+- Les autres corrections de l'audit (prix des échéances tout juste listées, nettoyage des chaînes d'options,
+  étiquettes de coûts) portent sur la reconstruction avec des options cotées, pas sur ces fichiers : vérifié en
+  relançant le code avant et après elles, aucun chiffre ne bouge.
+
 ## Fichiers
 
 | Fichier | Contenu | Lignes | Période |
